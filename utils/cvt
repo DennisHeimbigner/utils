@@ -3,7 +3,11 @@
 tag=`echo $1 |tr "[:upper:]" "[:lower:]"`
 TAG=`echo $tag |tr "[:lower:]" "[:upper:]"`
 
-TEMPLATES="bytes list hashmap"
+if test "x$2" = "x" ; then
+TEMPLATES="bytes list hashmap log"
+else
+TEMPLATES="$2"
+fi
 
 for t in $TEMPLATES ; do
 rm -f ${tag}${t}.h ${tag}${t}.c
