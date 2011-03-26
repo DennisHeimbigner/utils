@@ -1,0 +1,13 @@
+#!/bin/sh -x
+
+tag=`echo $1 |tr "[:upper:]" "[:lower:]"`
+TAG=`echo $tag |tr "[:lower:]" "[:upper:]"`
+
+TEMPLATES="bytes list hashmap"
+
+for t in $TEMPLATES ; do
+rm -f ${tag}${t}.h ${tag}${t}.c
+sed -e "s/XX/${TAG}/g" -e "s/xx/${tag}/g" <${t}_template.h >./${tag}${t}.h
+sed -e "s/XX/${TAG}/g" -e "s/xx/${tag}/g" <${t}_template.c >./${tag}${t}.c
+done
+exit
