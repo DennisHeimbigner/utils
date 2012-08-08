@@ -60,8 +60,8 @@ xxlistsetalloc(XXlist* l, unsigned int sz)
   newcontent=(xxelem*)calloc(sz,sizeof(xxelem));
   if(l->alloc > 0 && l->length > 0 && l->content != NULL) {
     memcpy((void*)newcontent,(void*)l->content,sizeof(xxelem)*l->length);
-    if(l->content != NULL) free(l->content);
   }
+  if(l->content != NULL) free(l->content);
   l->content=newcontent;
   l->alloc=sz;
   return TRUE;
@@ -165,8 +165,31 @@ xxlistcontains(XXlist* list, xxelem elem)
     return 0;
 }
 
+/* Remove element by value; only removes first encountered */
+int
+xxlistelemremove(XXlist* l, xxelem elem)
+{
+  unsigned int len;
+  unsigned int i;
+  int found = 0;
+  if(l == NULL || (len=l->length) == 0) return xxDATANULL;
+  for(i=0;i<xxlistlength(l);i++) {
+    xxelem candidate = l->content[i];
+    if(elem == candidate) {
+      for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
+      l->length--;
+      found = 1;
+      break;
+    }
+  }
+  return found;
+}
 
-/* Remove duplicate values; NULL values removed
+
+
+
+/* Extends xxlist to include a unique operator 
+   which remove duplicate values; NULL values removed
    return value is always 1.
 */
 

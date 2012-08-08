@@ -108,8 +108,8 @@ xxbytesappend(XXbytes* bb, char elem)
 {
   if(bb == NULL) return xxbytesfail();
   /* We need space for the char + null */
-  if(bb->length >= bb->alloc) {
-	if(!ncbytessetalloc(bb,0)) return ncbytesfail();
+  while(bb->length+1 >= bb->alloc) {
+	if(!xxbytessetalloc(bb,0)) return xxbytesfail();
   }
   bb->content[bb->length] = elem;
   bb->length++;
@@ -119,7 +119,7 @@ xxbytesappend(XXbytes* bb, char elem)
 
 /* This assumes s is a null terminated string*/
 int
-xxbytescat(XXbytes* bb, char* s)
+xxbytescat(XXbytes* bb, const char* s)
 {
     xxbytesappendn(bb,(void*)s,strlen(s)+1); /* include trailing null*/
     /* back up over the trailing null*/
@@ -129,15 +129,16 @@ xxbytescat(XXbytes* bb, char* s)
 }
 
 int
-xxbytesappendn(XXbytes* bb, void* elem, unsigned int n)
+xxbytesappendn(XXbytes* bb, const void* elem, unsigned int n)
 {
   if(bb == NULL || elem == NULL) return xxbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
-  while(!xxbytesavail(bb,n)) {
+  while(!xxbytesavail(bb,n+1)) {
     if(!xxbytessetalloc(bb,0)) return xxbytesfail();
   }
   memcpy((void*)&bb->content[bb->length],(void*)elem,n);
   bb->length += n;
+  bb->content[bb->length] = '\0';
   return TRUE;
 }
 
@@ -187,6 +188,7 @@ xxbytessetcontents(XXbytes* bb, char* contents, unsigned int alloc)
 }
 
 /* Null terminate the byte string without extending its length */
+/* For debugging */
 int
 xxbytesnull(XXbytes* bb)
 {
@@ -194,3 +196,4 @@ xxbytesnull(XXbytes* bb)
     bb->length--;
     return 1;
 }
+

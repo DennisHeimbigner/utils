@@ -1,10 +1,11 @@
-#!/bin/sh -x
-
+#!/bin/sh
+#set -x
 tag=`echo $1 |tr "[:upper:]" "[:lower:]"`
 TAG=`echo $tag |tr "[:lower:]" "[:upper:]"`
 
 if test "x$2" = "x" ; then
-TEMPLATES="bytes list hashmap log"
+#TEMPLATES="bytes list hashmap log uri"
+TEMPLATES="bytes list log uri"
 else
 TEMPLATES="$2"
 fi

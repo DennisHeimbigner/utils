@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+use strict;
+use Getopt::Long;
+use File::Copy;
+
+# Globals
+my $file;
+my %opt;
+
+GetOptions(\%opt, 'r') || die "Illegal command line"
+
+if($#ARGV == 0) {die "No file specified";}
+
+my $file = $ARGV[0];
+
+# Core loop 
+open SRC, "<${file}"
+     || die "file not readable: ${file}";
+
+while(<SRC>) {
+  my $line=$_;
+  $line = 
+  # parse line to discriminate the type
+    
+	    # remove trailing newlines
+	    $line =~ s/[\r\n]//g;
+	    if( $_ =~ m/#begin visualstudio/) {
+		$state="skip";
+		if($debug > 0) {print "xx: $state: skip=|$line|\n";}
+		next;
+	    }elsif( $_ =~ m/#end visualstudio/) {
+		$state="print";
+		if($debug > 0) {print "xx: $state: skip=|$line|\n";}
+		next;
+	    }
+	    if( $state eq "skip") {
+		if($debug > 0) {print "xx: $state: skip=|$line|\n";}
+	    } else {
+	        print DST "$line\n";
+	    }
+        }
+	close SRC;
+	close DST;
+    }        
+
