@@ -11,43 +11,41 @@
 #define EXTERNC extern
 #endif
 
-typedef unsigned long xxelem;
-
-EXTERNC int xxlistnull(xxelem);
+EXTERNC int xxlistnull(void*);
 
 typedef struct XXlist {
-  unsigned int alloc;
-  unsigned int length;
-  xxelem* content;
+  unsigned long alloc;
+  unsigned long length;
+  void** content;
 } XXlist;
 
 EXTERNC XXlist* xxlistnew(void);
 EXTERNC int xxlistfree(XXlist*);
-EXTERNC int xxlistsetalloc(XXlist*,unsigned int);
-EXTERNC int xxlistsetlength(XXlist*,unsigned int);
+EXTERNC int xxlistsetalloc(XXlist*,unsigned long);
+EXTERNC int xxlistsetlength(XXlist*,unsigned long);
 
 /* Set the ith element */
-EXTERNC int xxlistset(XXlist*,unsigned int,xxelem);
+EXTERNC int xxlistset(XXlist*,unsigned long,void*);
 /* Get value at position i */
-EXTERNC xxelem xxlistget(XXlist*,unsigned int);/* Return the ith element of l */
+EXTERNC void* xxlistget(XXlist*,unsigned long);/* Return the ith element of l */
 /* Insert at position i; will push up elements i..|seq|. */
-EXTERNC int xxlistinsert(XXlist*,unsigned int,xxelem);
+EXTERNC int xxlistinsert(XXlist*,unsigned long,void*);
 /* Remove element at position i; will move higher elements down */
-EXTERNC xxelem xxlistremove(XXlist* l, unsigned int i);
+EXTERNC void* xxlistremove(XXlist* l, unsigned long i);
 
 /* Tail operations */
-EXTERNC int xxlistpush(XXlist*,xxelem); /* Add at Tail */
-EXTERNC xxelem xxlistpop(XXlist*);
-EXTERNC xxelem xxlisttop(XXlist*);
+EXTERNC int xxlistpush(XXlist*,void*); /* Add at Tail */
+EXTERNC void* xxlistpop(XXlist*);
+EXTERNC void* xxlisttop(XXlist*);
 
 /* Duplicate and return the content (null terminate) */
-EXTERNC xxelem* xxlistdup(XXlist*);
+EXTERNC void** xxlistdup(XXlist*);
 
 /* Look for value match */
-EXTERNC int xxlistcontains(XXlist*, xxelem);
+EXTERNC int xxlistcontains(XXlist*, void*);
 
 /* Remove element by value; only removes first encountered */
-EXTERNC int xxlistelemremove(XXlist* l, xxelem elem);
+EXTERNC int xxlistelemremove(XXlist* l, void* elem);
 
 /* remove duplicates */
 EXTERNC int xxlistunique(XXlist*);
@@ -56,9 +54,9 @@ EXTERNC int xxlistunique(XXlist*);
 EXTERNC XXlist* xxlistclone(XXlist*);
 
 /* Following are always "in-lined"*/
-#define xxlistclear(l) xxlistsetlength((l),0U)
+#define xxlistclear(l) xxlistsetlength((l),0)
 #define xxlistextend(l,len) xxlistsetalloc((l),(len)+(l->alloc))
 #define xxlistcontents(l)  ((l)==NULL?NULL:(l)->content)
-#define xxlistlength(l)  ((l)==NULL?0U:(l)->length)
+#define xxlistlength(l)  ((l)==NULL?0:(l)->length)
 
 #endif /*XXLIST_H*/

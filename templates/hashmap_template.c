@@ -14,8 +14,6 @@
 
 #include "xxhashmap.h"
 
-static xxelem xxDATANULL = (xxelem)0;
-
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -30,6 +28,10 @@ XXhashmap* xxhashnew(void) {return xxhashnew0(DEFAULTALLOC);}
 XXhashmap* xxhashnew0(int alloc)
 {
   XXhashmap* hm;
+  if(sizeof(xxhashid) != sizeof(void*)){
+	fprintf(stderr,"xxhashmap: sizeof(xxhashid) != sizeof(void*)");
+	abort();
+  }
   hm = (XXhashmap*)malloc(sizeof(XXhashmap));
   if(!hm) return NULL;
   hm->alloc = alloc;
@@ -53,14 +55,14 @@ xxhashfree(XXhashmap* hm)
   return TRUE;
 }
 
-/* Insert a <xxhashid,xxelem> pair into the table*/
+/* Insert a <xxhashid,void*> pair into the table*/
 /* Fail if already there*/
 int
-xxhashinsert(XXhashmap* hm, xxhashid hash, xxelem value)
+xxhashinsert(XXhashmap* hm, xxhashid hash, void* value)
 {
     int i,offset,len;
     XXlist* seq;
-    xxelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -68,22 +70,22 @@ xxhashinsert(XXhashmap* hm, xxhashid hash, xxelem value)
     len = xxlistlength(seq);
     list = xxlistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) return FALSE;
+	if(hash==(xxhashid)(*list)) return FALSE;
     }    
-    xxlistpush(seq,(xxelem)hash);
+    xxlistpush(seq,(void*)hash);
     xxlistpush(seq,value);
     hm->size++;
     return TRUE;
 }
 
-/* Insert a <xxhashid,xxelem> pair into the table*/
+/* Insert a <xxhashid,void*> pair into the table*/
 /* Overwrite if already there*/
 int
-xxhashreplace(XXhashmap* hm, xxhashid hash, xxelem value)
+xxhashreplace(XXhashmap* hm, xxhashid hash, void* value)
 {
     int i,offset,len;
     XXlist* seq;
-    xxelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -91,9 +93,9 @@ xxhashreplace(XXhashmap* hm, xxhashid hash, xxelem value)
     len = xxlistlength(seq);
     list = xxlistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) {list[1] = value; return TRUE;}
+	if(hash==(xxhashid)(*list)) {list[1] = value; return TRUE;}
     }    
-    xxlistpush(seq,(xxelem)hash);
+    xxlistpush(seq,(void*)hash);
     xxlistpush(seq,value);
     hm->size++;
     return TRUE;
@@ -106,7 +108,7 @@ xxhashremove(XXhashmap* hm, xxhashid hash)
 {
     int i,offset,len;
     XXlist* seq;
-    xxelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -114,7 +116,7 @@ xxhashremove(XXhashmap* hm, xxhashid hash)
     len = xxlistlength(seq);
     list = xxlistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) {
+	if(hash==(xxhashid)(*list)) {
 	    xxlistremove(seq,i+1);
 	    xxlistremove(seq,i);
 	    hm->size--;
@@ -127,20 +129,20 @@ xxhashremove(XXhashmap* hm, xxhashid hash)
 
 /* lookup a xxhashid; return DATANULL if not found*/
 /* (use hashlookup if the possible values include 0)*/
-xxelem
+void*
 xxhashget(XXhashmap* hm, xxhashid hash)
 {
-    xxelem value;
-    if(!xxhashlookup(hm,hash,&value)) return xxDATANULL;
+    void* value;
+    if(!xxhashlookup(hm,hash,&value)) return NULL;
     return value;
 }
 
 int
-xxhashlookup(XXhashmap* hm, xxhashid hash, xxelem* valuep)
+xxhashlookup(XXhashmap* hm, xxhashid hash, void** valuep)
 {
     int i,offset,len;
     XXlist* seq;
-    xxelem* list;
+    void** list;
 
     offset = (hash % hm->alloc);    
     seq = hm->table[offset];
@@ -148,7 +150,7 @@ xxhashlookup(XXhashmap* hm, xxhashid hash, xxelem* valuep)
     len = xxlistlength(seq);
     list = xxlistcontents(seq);
     for(i=0;i<len;i+=2,list+=2) {
-	if(*list == hash) {if(valuep) {*valuep = list[1]; return TRUE;}}
+	if(hash==(xxhashid)(*list)) {if(valuep) {*valuep = list[1]; return TRUE;}}
     }
     return FALSE;
 }
@@ -156,7 +158,7 @@ xxhashlookup(XXhashmap* hm, xxhashid hash, xxelem* valuep)
 /* Return the ith pair; order is completely arbitrary*/
 /* Can be expensive*/
 int
-xxhashith(XXhashmap* hm, int index, xxhashid* hashp, xxelem* elemp)
+xxhashith(XXhashmap* hm, int index, xxhashid* hashp, void** elemp)
 {
     int i;
     if(hm == NULL) return FALSE;

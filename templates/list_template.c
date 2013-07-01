@@ -6,10 +6,7 @@
 
 #include "xxlist.h"
 
-static xxelem xxDATANULL = (xxelem)0;
-/*static int xxinitialized=0;*/
-
-int xxlistnull(xxelem e) {return e == xxDATANULL;}
+int xxlistnull(void* e) {return e == NULL;}
 
 #ifndef TRUE
 #define TRUE 1
@@ -26,7 +23,7 @@ XXlist* xxlistnew(void)
   XXlist* l;
 /*
   if(!xxinitialized) {
-    memset((void*)&xxDATANULL,0,sizeof(xxelem));
+    memset((void*)&xxDATANULL,0,sizeof(void*));
     xxinitialized = 1;
   }
 */
@@ -51,15 +48,15 @@ xxlistfree(XXlist* l)
 }
 
 int
-xxlistsetalloc(XXlist* l, unsigned int sz)
+xxlistsetalloc(XXlist* l, unsigned long sz)
 {
-  xxelem* newcontent;
+  void** newcontent;
   if(l == NULL) return FALSE;
   if(sz <= 0) {sz = (l->length?2*l->length:DEFAULTALLOC);}
   if(l->alloc >= sz) {return TRUE;}
-  newcontent=(xxelem*)calloc(sz,sizeof(xxelem));
+  newcontent=(void**)calloc(sz,sizeof(void*));
   if(l->alloc > 0 && l->length > 0 && l->content != NULL) {
-    memcpy((void*)newcontent,(void*)l->content,sizeof(xxelem)*l->length);
+    memcpy((void*)newcontent,(void*)l->content,sizeof(void*)*l->length);
   }
   if(l->content != NULL) free(l->content);
   l->content=newcontent;
@@ -68,7 +65,7 @@ xxlistsetalloc(XXlist* l, unsigned int sz)
 }
 
 int
-xxlistsetlength(XXlist* l, unsigned int sz)
+xxlistsetlength(XXlist* l, unsigned long sz)
 {
   if(l == NULL) return FALSE;
   if(sz > l->alloc && !xxlistsetalloc(l,sz)) return FALSE;
@@ -76,16 +73,16 @@ xxlistsetlength(XXlist* l, unsigned int sz)
   return TRUE;
 }
 
-xxelem
-xxlistget(XXlist* l, unsigned int index)
+void*
+xxlistget(XXlist* l, unsigned long index)
 {
-  if(l == NULL || l->length == 0) return xxDATANULL;
-  if(index >= l->length) return xxDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
+  if(index >= l->length) return NULL;
   return l->content[index];
 }
 
 int
-xxlistset(XXlist* l, unsigned int index, xxelem elem)
+xxlistset(XXlist* l, unsigned long index, void* elem)
 {
   if(l == NULL) return FALSE;
   if(index >= l->length) return FALSE;
@@ -95,7 +92,7 @@ xxlistset(XXlist* l, unsigned int index, xxelem elem)
 
 /* Insert at position i of l; will push up elements i..|seq|. */
 int
-xxlistinsert(XXlist* l, unsigned int index, xxelem elem)
+xxlistinsert(XXlist* l, unsigned long index, void* elem)
 {
   int i; /* do not make unsigned */
   if(l == NULL) return FALSE;
@@ -108,7 +105,7 @@ xxlistinsert(XXlist* l, unsigned int index, xxelem elem)
 }
 
 int
-xxlistpush(XXlist* l, xxelem elem)
+xxlistpush(XXlist* l, void* elem)
 {
   if(l == NULL) return FALSE;
   if(l->length >= l->alloc) xxlistsetalloc(l,0);
@@ -117,28 +114,28 @@ xxlistpush(XXlist* l, xxelem elem)
   return TRUE;
 }
 
-xxelem
+void*
 xxlistpop(XXlist* l)
 {
-  if(l == NULL || l->length == 0) return xxDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
   l->length--;  
   return l->content[l->length];
 }
 
-xxelem
+void*
 xxlisttop(XXlist* l)
 {
-  if(l == NULL || l->length == 0) return xxDATANULL;
+  if(l == NULL || l->length == 0) return NULL;
   return l->content[l->length - 1];
 }
 
-xxelem
-xxlistremove(XXlist* l, unsigned int i)
+void*
+xxlistremove(XXlist* l, unsigned long i)
 {
-  unsigned int len;
-  xxelem elem;
-  if(l == NULL || (len=l->length) == 0) return xxDATANULL;
-  if(i >= len) return xxDATANULL;
+  unsigned long len;
+  void* elem;
+  if(l == NULL || (len=l->length) == 0) return NULL;
+  if(i >= len) return NULL;
   elem = l->content[i];
   for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
   l->length--;
@@ -146,35 +143,35 @@ xxlistremove(XXlist* l, unsigned int i)
 }
 
 /* Duplicate and return the content (null terminate) */
-xxelem*
+void**
 xxlistdup(XXlist* l)
 {
-    xxelem* result = (xxelem*)malloc(sizeof(xxelem)*(l->length+1));
-    memcpy((void*)result,(void*)l->content,sizeof(xxelem)*l->length);
-    result[l->length] = (xxelem)0;
+    void** result = (void**)malloc(sizeof(void*)*(l->length+1));
+    memcpy((void*)result,(void*)l->content,sizeof(void*)*l->length);
+    result[l->length] = (void*)0;
     return result;
 }
 
 int
-xxlistcontains(XXlist* list, xxelem elem)
+xxlistcontains(XXlist* l, void* elem)
 {
-    unsigned int i;
-    for(i=0;i<xxlistlength(list);i++) {
-	if(elem == xxlistget(list,i)) return 1;
+    unsigned long i;
+    for(i=0;i<xxlistlength(l);i++) {
+	if(elem == xxlistget(l,i)) return 1;
     }
     return 0;
 }
 
 /* Remove element by value; only removes first encountered */
 int
-xxlistelemremove(XXlist* l, xxelem elem)
+xxlistelemremove(XXlist* l, void* elem)
 {
-  unsigned int len;
-  unsigned int i;
+  unsigned long len;
+  unsigned long i;
   int found = 0;
-  if(l == NULL || (len=l->length) == 0) return xxDATANULL;
+  if(l == NULL || (len=l->length) == 0) return 0;
   for(i=0;i<xxlistlength(l);i++) {
-    xxelem candidate = l->content[i];
+    void* candidate = l->content[i];
     if(elem == candidate) {
       for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
       l->length--;
@@ -194,13 +191,13 @@ xxlistelemremove(XXlist* l, xxelem elem)
 */
 
 int
-xxlistunique(XXlist* list)
+xxlistunique(XXlist* l)
 {
-    unsigned int i,j,k,len;
-    xxelem* content;
-    if(list == NULL || list->length == 0) return 1;
-    len = list->length;
-    content = list->content;
+    unsigned long i,j,k,len;
+    void** content;
+    if(l == NULL || l->length == 0) return 1;
+    len = l->length;
+    content = l->content;
     for(i=0;i<len;i++) {
         for(j=i+1;j<len;j++) {
 	    if(content[i] == content[j]) {
@@ -210,15 +207,15 @@ xxlistunique(XXlist* list)
 	    }
 	}
     }
-    list->length = len;
+    l->length = len;
     return 1;
 }
 
 XXlist*
-xxlistclone(XXlist* list)
+xxlistclone(XXlist* l)
 {
     XXlist* clone = xxlistnew();
-    *clone = *list;
-    clone->content = xxlistdup(list);
+    *clone = *l;
+    clone->content = xxlistdup(l);
     return clone;
 }

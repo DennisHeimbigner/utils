@@ -1,18 +1,57 @@
 #!/bin/sh
 #set -x
-tag=`echo $1 |tr "[:upper:]" "[:lower:]"`
+
+#lower case tag
+tag="$1"
+shift
+
+REMOVE=""
+KEEP=""
+while (( "$#" )); do
+MINUS=`expr substr $1 1 1`
+if test "x$MINUS" = "x-" ; then
+BASE=${1#-}
+REMOVE="$REMOVE $BASE"
+else
+KEEP="$KEEP $1"
+fi
+shift
+done
+
+if test "x$tag" = "x" ; then echo "missing tag"; exit; fi
+
+tag=`echo $tag |tr "[:upper:]" "[:lower:]"`
 TAG=`echo $tag |tr "[:lower:]" "[:upper:]"`
 
-if test "x$2" = "x" ; then
-#TEMPLATES="bytes list hashmap log uri"
-TEMPLATES="bytes list log uri"
-else
-TEMPLATES="$2"
+# Special case if we want an empty tag
+if test "x$tag" = "xnotag" ; then notag=1; else notag=; fi
+
+if test "x$KEEP" = "x" ; then
+KEEP="bytes list log uri hashmap"
 fi
 
+TEMPLATES=
+for k in $KEEP ; do
+  match=""
+  for r in $REMOVE; do
+    if test "x$r" = "x$k"; then match=1; break; fi
+  done
+  if test "x$match" = "x" ;then TEMPLATES="$TEMPLATES $k"; fi
+done
+
 for t in $TEMPLATES ; do
+if test "x${notag}" = x ; then
 rm -f ${tag}${t}.h ${tag}${t}.c
 sed -e "s/XX/${TAG}/g" -e "s/xx/${tag}/g" <${t}_template.h >./${tag}${t}.h
 sed -e "s/XX/${TAG}/g" -e "s/xx/${tag}/g" <${t}_template.c >./${tag}${t}.c
+else
+# Special processing for notag case
+# Convert the first char only of the template name to upper case for notag
+clc=${t:0:1}
+cuc=`echo ${clc} |tr "[:lower:]" "[:upper:]"`
+rm -f ${t}.h ${t}.c
+sed -e "s/XX[${clc}${cuc}]/${cuc}/g" -e "s/xx//g" <${t}_template.h >./${t}.h
+sed -e "s/XX[${clc}${cuc}]/${cuc}/g" -e "s/xx//g" <${t}_template.c >./${t}.c
+fi
 done
 exit

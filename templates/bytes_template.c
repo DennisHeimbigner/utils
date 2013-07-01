@@ -42,7 +42,7 @@ xxbytesnew(void)
 }
 
 int
-xxbytessetalloc(XXbytes* bb, unsigned int sz)
+xxbytessetalloc(XXbytes* bb, unsigned long sz)
 {
   char* newcontent;
   if(bb == NULL) return xxbytesfail();
@@ -69,10 +69,12 @@ xxbytesfree(XXbytes* bb)
 }
 
 int
-xxbytessetlength(XXbytes* bb, unsigned int sz)
+xxbytessetlength(XXbytes* bb, unsigned long sz)
 {
   if(bb == NULL) return xxbytesfail();
-  if(sz > bb->alloc) {if(!xxbytessetalloc(bb,sz)) return xxbytesfail();}
+  if(bb->length < sz) {
+      if(sz > bb->alloc) {if(!xxbytessetalloc(bb,sz)) return xxbytesfail();}
+  }
   bb->length = sz;
   return TRUE;
 }
@@ -80,14 +82,14 @@ xxbytessetlength(XXbytes* bb, unsigned int sz)
 int
 xxbytesfill(XXbytes* bb, char fill)
 {
-  unsigned int i;
+  unsigned long i;
   if(bb == NULL) return xxbytesfail();
   for(i=0;i<bb->length;i++) bb->content[i] = fill;
   return TRUE;
 }
 
 int
-xxbytesget(XXbytes* bb, unsigned int index)
+xxbytesget(XXbytes* bb, unsigned long index)
 {
   if(bb == NULL) return -1;
   if(index >= bb->length) return -1;
@@ -95,7 +97,7 @@ xxbytesget(XXbytes* bb, unsigned int index)
 }
 
 int
-xxbytesset(XXbytes* bb, unsigned int index, char elem)
+xxbytesset(XXbytes* bb, unsigned long index, char elem)
 {
   if(bb == NULL) return xxbytesfail();
   if(index >= bb->length) return xxbytesfail();
@@ -129,7 +131,7 @@ xxbytescat(XXbytes* bb, const char* s)
 }
 
 int
-xxbytesappendn(XXbytes* bb, const void* elem, unsigned int n)
+xxbytesappendn(XXbytes* bb, const void* elem, unsigned long n)
 {
   if(bb == NULL || elem == NULL) return xxbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
@@ -175,7 +177,7 @@ xxbytesextract(XXbytes* bb)
 }
 
 int
-xxbytessetcontents(XXbytes* bb, char* contents, unsigned int alloc)
+xxbytessetcontents(XXbytes* bb, char* contents, unsigned long alloc)
 {
     if(bb == NULL) return xxbytesfail();
     xxbytesclear(bb);

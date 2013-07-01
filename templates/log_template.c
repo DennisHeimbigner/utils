@@ -37,9 +37,13 @@ static char* xxtagname(int tag);
 void
 xxloginit(void)
 {
-    const char* file = getenv(XXENVFLAG);
+{
+    const char* file;
+    if(xxlogginginitialized)
+	return;
     xxlogginginitialized = 1;
     xxsetlogging(0);
+    file = getenv(XXENVFLAG);
     xxlogfile = NULL;
     xxlogstream = NULL;
     /* Use environment variables to preset xxlogging state*/
